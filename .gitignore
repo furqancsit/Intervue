@@ -1,96 +1,69 @@
 
-# ========================================
 # Dependencies
-# ========================================
 node_modules/
 **/node_modules/
 
-# ========================================
-# Environment Variables & Secrets
-# ========================================
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
-!.env.sample
 
-# ========================================
 # Logs
-# ========================================
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-# ========================================
-# Build Outputs
-# ========================================
+# Build files
 dist/
 build/
 .next/
 out/
+
+# Cache
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
+
+# Coverage
 coverage/
 
-# ========================================
-# React / Vite
-# ========================================
-.vite/
-*.local
-
-# ========================================
-# Testing
-# ========================================
-.nyc_output/
-playwright-report/
-test-results/
-
-# ========================================
-# MongoDB
-# ========================================
-data/db/
-mongodb-data/
-
-# ========================================
-# Operating System Files
-# ========================================
+# OS generated files
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-# ========================================
-# IDEs & Editors
-# ========================================
+# IDE and editors
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# ========================================
-# Temporary Files
-# ========================================
+# Temporary files
 tmp/
 temp/
-.cache/
-.parcel-cache/
+*.tmp
 
-# ========================================
+# React
+client/build/
+client/dist/
+
+# Node / Express backend
+server/uploads/
+server/logs/
+
+# Testing
+.nyc_output/
+
+# Package manager
+.npm/
+.pnpm-store/
+
 # TypeScript
-# ========================================
 *.tsbuildinfo
 
-# ========================================
-# Deployment & Tooling
-# ========================================
-.vercel/
-.netlify/
-.turbo/
-
-# ========================================
-# Package Manager / Local Config
-# ========================================
-.npm/
-.eslintcache
-.stylelintcache
+# Miscellaneous
+*.bak
+*.orig
