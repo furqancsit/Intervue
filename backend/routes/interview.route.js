@@ -7,18 +7,16 @@ import {
   updateInterview,
   deleteInterview,
 } from "../controllers/interview.controller.js";
-import { protect } from "../middlewares/auth.midlleware.js";
-
+import { protect } from "../middlewares/auth.midleware.js";
 
 const router = Router();
 
-
 router.use(protect);
 
-router.post("/", createInterview);
-router.get("/", getInterviews);
+router.post("/create", createInterview);
+router.get("/get", getInterviews);
 router.get("/:id", getInterviewById);
-router.patch("/:id", updateInterview);
-router.delete("/:id", deleteInterview);
+router.patch("/update/:id", updateInterview);
+router.delete("/delete/:id", deleteInterview);
 
 export default router;

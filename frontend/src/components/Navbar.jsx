@@ -1,10 +1,13 @@
-
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../context/authProvider";
+import { logout } from "../auth/api/Auth";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+  console.log(user, "userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
 
   // Close mobile menu after navigation
   useEffect(() => {
@@ -19,32 +22,30 @@ const Navbar = () => {
 
   const linkStyle = ({ isActive }) =>
     `text-sm font-medium transition-colors duration-200 text-slate-300 ${
-      isActive
-        ? "text-slate-50"
-        : "hover:text-white"
+      isActive ? "text-slate-50" : "hover:text-white"
     }`;
+
+  const handleLogout = async () => {
+    const res= await logout()
+
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b  bg-black ">
       <nav className="mx-auto max-w-6xl px-5 lg:px-8">
         <div className="flex h-18 min-h-[72px] items-center justify-between">
-
           {/* Logo */}
           <Link
             to="/"
             className="text-2xl font-medium  tracking-tight text-slate-50"
           >
-             <span className=" font-bold  text-amber-500 ">Pre</span>pwise
+            <span className=" font-bold  text-amber-500 ">Pre</span>pwise
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-8 md:flex">
             {navLinks.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className={linkStyle}
-              >
+              <NavLink key={link.path} to={link.path} className={linkStyle}>
                 {link.name}
               </NavLink>
             ))}
@@ -52,19 +53,46 @@ const Navbar = () => {
 
           {/* Desktop Actions */}
           <div className="hidden items-center gap-5 md:flex">
-            <Link
-              to="/login"
-              className="text-sm font-semibold text-white hover:text-white"
-            >
-              Sign in
-            </Link>
+            {user ? (
+              <>
+               <div className="group relative">
+  <button className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition  cursor-pointer hover:bg-slate-800 hover:text-white">
+    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-600 font-bold text-white">
+      {user.name?.charAt(0).toUpperCase()}
+    </div>
 
-            <Link
-              to="/signup"
-              className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700"
-            >
-              Get Started Free
-            </Link>
+    <span>{user.name}</span>
+
+    <span className="text-xs">▼</span>
+  </button>
+
+  <div className="invisible absolute right-0 top-full z-50 mt-2 w-40 rounded-lg border border-slate-700 bg-slate-900 p-2 opacity-0 shadow-xl transition-all group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+    <button
+      onClick={handleLogout}
+      className="w-full rounded-md px-3 py-2 text-left text-sm text-red-400 transition hover:bg-slate-800 cursor-pointer"
+    >
+      <span className="mr-2">↪</span>
+      Logout
+    </button>
+  </div>
+</div>
+
+              
+
+                <Link   className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700" to="/dashboard">Dashboard</Link>
+              </>
+            ) : (
+              <>
+                <Link className = "text-white" to="/login">Sign in</Link>
+
+                <Link
+                  to="/signup"
+                  className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700"
+                >
+                  Get Started Free
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Toggle */}
@@ -138,21 +166,31 @@ const Navbar = () => {
               ))}
 
               <div className="mt-3 flex flex-col gap-3 border-t border-gray-100 pt-4">
-                <Link
-                  to="/login"
-                  tabIndex={isOpen ? 0 : -1}
-                  className="rounded-lg px-4 py-3 text-center text-sm font-semibold text-white hover:bg-gray-50"
+               {user ? (
+              <>
+                <span className="text-sm font-medium text-slate-300">
+                  Welcome, {user.name}
+                </span>
+
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-semibold text-white hover:text-amber-400"
                 >
-                  Sign in
-                </Link>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">Sign in</Link>
 
                 <Link
                   to="/signup"
-                  tabIndex={isOpen ? 0 : -1}
-                  className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 text-center"
+                  className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700"
                 >
                   Get Started Free
                 </Link>
+              </>
+            )}
               </div>
             </div>
           </div>

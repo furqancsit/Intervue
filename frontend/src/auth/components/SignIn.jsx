@@ -1,24 +1,27 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { GoogleAuthButton } from "../googleAuthButton";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
-import { login, loginWithGoogle } from "../api/auth.api";
+import { useNavigate } from "react-router-dom";
+import { login,loginWithGoogle } from "../api/Auth";
+
+import { useAuth } from "../../context/authProvider";
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const {setUser}= useAuth()
 
   const [form, setForm] = useState({
-    name: "",
     email: "",
     password: "",
   });
 
-  const handleGoogleSuccess = async ({credential}) => {
+  const handleGoogleSuccess = async ({ credential }) => {
     // Connect your Google OAuth authentication her
 
     const res = await loginWithGoogle(credential);
+
+    setUser(res.data)
 
     navigate("/dashboard");
 
@@ -26,18 +29,19 @@ const SignIn = () => {
   };
 
   const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      e.preventDefault();
 
       const response = await login(form.email, form.password);
-
+ 
+      setUser(response.user)
       navigate("/dashboard");
     } catch (error) {
       console.log("login failed", error);
     }
   };
 
-  const { name, email, password } = form;
+  const { email, password } = form;
 
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-5 py-12 text-white">
@@ -60,7 +64,6 @@ const SignIn = () => {
 
           <GoogleAuthButton
             onSuccess={handleGoogleSuccess}
-            
             text="continue_with"
             shape="rectangular"
             theme="outline"
@@ -111,6 +114,8 @@ const SignIn = () => {
 
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Enter your password"
                 required
                 autoComplete="current-password"

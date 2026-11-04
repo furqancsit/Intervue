@@ -1,14 +1,15 @@
 import { Router } from "express";
-import { protect } from "../middlewares/auth.midlleware.js";
-import { getMe, login, logout, register } from "../controllers/auth.controller.js";
+import { protect } from "../middlewares/auth.midleware.js";
+import {register,login,getMe,logout} from "../controllers/auth.controller.js"
+import googleLogin from "../controllers/googleLogin.js";
 
 
 const route = Router();
 
-route.post("/register", registerLimiter, register);
-route.post("/login", loginLimiter, login);
+route.post("/register", register);
+route.post("/login",login);
 route.get("/me", protect, getMe);
 route.post("/logout", logout);
-
+route.post("/google-login", protect, googleLogin )
 
 export default route

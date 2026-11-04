@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { register } from "../api/auth.api";
+import { register } from "../api/Auth";
 import { GoogleAuthButton } from "../googleAuthButton";
 
 

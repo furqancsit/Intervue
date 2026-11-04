@@ -34,7 +34,7 @@ const register = async (req, res) => {
       password,
     });
 
-    const token = generateToken(user._id);
+    const token = await generateToken({ userId: user._id });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -71,8 +71,8 @@ const login = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email }).select("+password");
 
+const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -88,7 +88,7 @@ const login = async (req, res) => {
         message: "Invalid password",
       });
     }
-    const token = generateToken(user._id);
+    const token = await generateToken({ userId: user._id });
 
     const createdUser = {
       id: user._id,
@@ -110,7 +110,7 @@ const login = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Something went wrong",
+      message: "Something went wrong login",
     });
   }
 };
@@ -153,7 +153,7 @@ const logout = (req, res) => {
   });
 };
 
-<<<<<<< HEAD
+
 const updateProfile = async (req, res) => {
   try {
     const { name } = req.body;
