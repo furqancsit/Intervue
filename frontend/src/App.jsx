@@ -7,6 +7,7 @@ import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import Signup from "./auth/components/SignUp";
 import NotFound from "./components/NotFound";
+import InterviewForm from "./components/InterviewForm";
 function App() {
   return (
     <BrowserRouter>
@@ -19,7 +20,8 @@ function App() {
             <Route path="/login" element={<SignIn />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/pricing" element={<Pricing />} />
-            <Route path="feture" element={<Features />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/create-interview" element={<InterviewForm/>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

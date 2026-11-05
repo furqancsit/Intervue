@@ -29,12 +29,12 @@ export const register = async ({ name, email, password }) => {
   );
   return res.data;
 };
-export const loginWithGoogle = async (credential) => {
-  const { data } = await axios.post("/api/v1/auth/google-login", {
-    credential,
-  });
 
-  return data;
+export const loginWithGoogle = async (credential) => {
+  const res = await axios.post("/api/v1/auth/google-login", { credential },
+    { withCredentials: true });
+
+  return res.data;
 };
 
 export const logout = async () => {
@@ -44,6 +44,8 @@ export const logout = async () => {
     {
       withCredentials: true,
     },
+
+   
   );
   return res.data;
 };

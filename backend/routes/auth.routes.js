@@ -10,6 +10,6 @@ route.post("/register", register);
 route.post("/login",login);
 route.get("/me", protect, getMe);
 route.post("/logout", logout);
-route.post("/google-login", protect, googleLogin )
+route.post("/google-login", googleLogin )
 
 export default route

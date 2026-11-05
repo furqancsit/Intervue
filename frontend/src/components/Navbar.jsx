@@ -6,8 +6,8 @@ import { logout } from "../auth/api/Auth";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
-  console.log(user, "userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
+  const { user,setUser } = useAuth();
+
 
   // Close mobile menu after navigation
   useEffect(() => {
@@ -27,6 +27,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     const res= await logout()
+    setUser(null)
 
   }
 

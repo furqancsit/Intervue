@@ -1,4 +1,3 @@
-
 import { OAuth2Client } from "google-auth-library";
 
 import User from "../models/user.model.js";
@@ -16,27 +15,25 @@ const googleLogin = async (req, res) => {
         message: "Google credential is required",
       });
     }
-    
+
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
-    
     const payload = ticket.getPayload();
 
-    const { sub: googleId, email, name,  } = payload;
+    const { sub: googleId, email, name } = payload;
 
-     if (!email) {
+    if (!email) {
       return res.status(400).json({
         success: false,
         message: "Google account email not available",
       });
     }
-  
+
     let user = await User.findOne({ email });
 
-    
     if (!user) {
       user = await User.create({
         googleId,
@@ -44,13 +41,12 @@ const googleLogin = async (req, res) => {
         name,
         // picture,
       });
-    }else if (!user.googleId) {
+    } else if (!user.googleId) {
       user.googleId = googleId;
       await user.save();
     }
 
-  
-    const token = generateToken(user._id);
+    const token = await generateToken({ userId: user._id });
 
     res.cookie("token", token, {
       httpOnly: true,

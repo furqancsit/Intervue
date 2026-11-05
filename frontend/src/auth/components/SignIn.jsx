@@ -21,11 +21,12 @@ const SignIn = () => {
 
     const res = await loginWithGoogle(credential);
 
-    setUser(res.data)
+    console.log("resssssss :" ,res)
+    setUser(res.user)
+    
+    console.log("Google login clicked");
 
     navigate("/dashboard");
-
-    console.log("Google login clicked");
   };
 
   const handleSubmit = async (e) => {
