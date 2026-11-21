@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import Interview from "../models/interview.model.js";
 
-
 import InterviewSession from "../models/InterviewSession.js";
 import { getInterviewUsage } from "../utils/getInterviewUsage.js";
 import User from "../models/user.model.js";
+import { generateInterviewQuestions } from "../utils/generateInterviewQuestion.js";
 
 const createInterview = async (req, res) => {
   try {
@@ -25,7 +25,23 @@ const createInterview = async (req, res) => {
         message: "Title, role, and experience level are required",
       });
     }
+
+    if (
+      !Number.isInteger(questionCount) ||
+      questionCount < 1 ||
+      questionCount > 20
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Question count must be between 1 and 20",
+      });
+    }
     const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+
     const usage = await getInterviewUsage(user);
 
     if (!usage.canCreate) {
@@ -89,9 +105,26 @@ const startInterview = async (req, res) => {
         .json({ success: false, message: "interview not found" });
     }
 
-    const existingSession = await InterviewSession.findOne({
+    const completedSession = await InterviewSession.findOne({
       user: req.userId,
       interview: interview._id,
+      status: "completed",
+    }).sort({ startedAt: -1 });
+
+    if (completedSession) {
+      return res.status(403).json({
+        success: false,
+        message: "This interview has already been completed.",
+        data: {
+          sessionId: completedSession._id,
+          status: completedSession.status,
+        },
+      });
+    }
+
+    const existingSession = await InterviewSession.findOne({
+      user: req.userId,
+      interview: interview?._id,
       status: "in_progress",
     }).sort({ startedAt: -1 });
 
@@ -109,7 +142,7 @@ const startInterview = async (req, res) => {
           questions: existingSession.questions,
           answers: existingSession.answers,
           status: existingSession.status,
-        },
+        },  
       });
     }
 
@@ -118,13 +151,13 @@ const startInterview = async (req, res) => {
       difficulty: interview.difficulty,
       topics: interview.topics,
       questionCount: interview.questionCount,
-      type: interview.type,
+      type: interview.interviewType,
     });
 
     const session = await InterviewSession.create({
-      id: req.userId,
-      interviewId: interview.id,
-      questions: [],
+      user: req.userId,
+      interview: interview._id,
+      questions: questions,
       answer: [],
       status: "in_progress",
     });
@@ -151,19 +184,67 @@ const startInterview = async (req, res) => {
       success: false,
       message: "Failed to start interview session",
     });
-
   }
 };
-
 
 // session exist
 // if not then create
 // if yes then continue saw progress or status
+// const getInterviews = async (req, res) => {
+//   try {
+//     const interviews = await Interview.find({
+//       user: req.userId,
+//       status: "active",
+//     })
+//       .sort({ createdAt: -1 })
+//       .lean();
+
+//     const interviewIds = interviews.map((item) => item._id);
+
+//     const sessions = interviewIds.length
+//       ? await InterviewSession.find({
+//           user: req.userId,
+//           interview: { $in: interviewIds },
+//         })
+//           .sort({ createdAt: -1 })
+//           .lean()
+//       : [];
+
+//     const latestSessionMap = new Map();
+
+//     for (const session of sessions) {
+//       const id = session.interview.toString();
+
+//       if (!latestSessionMap.has(id)) {
+//         latestSessionMap.set(id, session);
+//       }
+//     }
+
+//     const data = interviews.map((interview) => ({
+//       ...interview,
+//       latestSession: latestSessionMap.get(interview._id.toString()) || null,
+//     }));
+
+//     return res.status(200).json({
+//       success: true,
+//       count: data.length,
+//       data,
+//     });
+//   } catch (error) {
+//     console.error("Get interviews error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch interviews",
+//     });
+//   }
+// };
+
 const getInterviews = async (req, res) => {
   try {
     const interviews = await Interview.find({
       user: req.userId,
-      status: "active",
+      status: "active", // Interview configuration status
     })
       .sort({ createdAt: -1 })
       .lean();
@@ -179,6 +260,7 @@ const getInterviews = async (req, res) => {
           .lean()
       : [];
 
+    // Get the latest session for each interview
     const latestSessionMap = new Map();
 
     for (const session of sessions) {
@@ -189,10 +271,21 @@ const getInterviews = async (req, res) => {
       }
     }
 
-    const data = interviews.map((interview) => ({
-      ...interview,
-      latestSession: latestSessionMap.get(interview._id.toString()) || null,
-    }));
+    const data = interviews.map((interview) => {
+      const latestSession = latestSessionMap.get(interview._id.toString());
+
+      return {
+        ...interview,
+
+        // Session information
+        sessionId: latestSession?._id || null,
+        sessionStatus: latestSession?.status || "not_started",
+        questions: latestSession?.questions || [],
+        answers: latestSession?.answers || [],
+        mode: latestSession?.mode || null,
+        evaluation: latestSession?.evaluation || null,
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -222,7 +315,7 @@ const getInterviewById = async (req, res) => {
 
     const interview = await Interview.findOne({
       _id: id,
-      user: req.userId || req.userId,
+      user: req.userId,
       status: "active",
     });
 
@@ -233,9 +326,22 @@ const getInterviewById = async (req, res) => {
       });
     }
 
+    // Fetch the latest in-progress session
+    const session = await InterviewSession.findOne({
+      interview: interview._id,
+      user: req.userId,
+      status: "in_progress",
+    }).sort({ startedAt: -1 });
+
     return res.status(200).json({
       success: true,
-      data: interview,
+      data: {
+        ...interview.toObject(),
+        sessionId: session?._id || null,
+        questions: session?.questions || [],
+        answers: session?.answers || [],
+        sessionStatus: session?.status || null,
+      },
     });
   } catch (error) {
     console.error("Get interview error:", error);
@@ -399,10 +505,9 @@ const deleteInterview = async (req, res) => {
 
 export {
   createInterview,
+  startInterview,
   getInterviews,
   getInterviewById,
   updateInterview,
   deleteInterview,
-  
 };
-

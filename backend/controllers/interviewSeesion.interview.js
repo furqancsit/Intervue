@@ -1,6 +1,11 @@
 //  submitAnswer,
 //   completeInterview,
 
+import mongoose from "mongoose";
+import InterviewSession from "../models/InterviewSession.js";
+import { evaluateInterview } from "../utils/EvaluateInterview.js";
+import Interview from "../models/interview.model.js";
+
 const submitAnswer = async (req, res) => {
   // userid interview id sessio id answer save in db
   try {
@@ -59,33 +64,27 @@ const submitAnswer = async (req, res) => {
 
     // 5. Prepare the saved answer
     const answerData = {
-      questionId: question._id,
-      answerText: answerText.trim(),
-      answerMode,
+  questionId: question._id,
+  answerText: answerText.trim(),
+  answerMode,
+  answeredAt: new Date(),
+};
 
-      answeredAt: new Date(),
-    };
+if (!session.answers) {
+  session.answers = [];
+}
 
-    if (!session.answers) {
-      session.answers = [];
-    }
+const existingAnswerIndex = session.answers.findIndex(
+  (a) => String(a.questionId) === String(question._id)
+);
 
-    // 6. Update existing answer or create a new one
-    const existingAnswerIndex = session.answers.findIndex(
-      (a) => String(a.questionId) === String(question._id),
-    );
+if (existingAnswerIndex !== -1) {
+  session.answers[existingAnswerIndex] = answerData;
+} else {
+  session.answers.push(answerData);
+}
 
-    if (existingAnswerIndex !== -1) {
-      session.answers[existingAnswerIndex].answerText = answerData.answerText;
-      session.answers[existingAnswerIndex].answerMode = answerData.answerMode;
-
-      session.answers[existingAnswerIndex].answeredAt = answerData.answeredAt;
-    } else {
-      session.answers.push(answerData);
-    }
-
-    await session.save();
-
+await session.save();
     // 7. Return the result to React
     return res.status(200).json({
       success: true,
@@ -142,6 +141,9 @@ const completeInterview = async (req, res) => {
 
     // Return existing evaluation if already completed
     if (session.status === "completed" && session.evaluation) {
+
+   
+
       return res.status(200).json({
         success: true,
         message: "Evaluation already exists",
@@ -204,4 +206,43 @@ const completeInterview = async (req, res) => {
   }
 };
 
-export { submitAnswer, completeInterview };
+const getInterviewResult = async (req, res) => {
+  try {
+    const { interviewId, sessionId } = req.params;
+
+    const session = await InterviewSession.findOne({
+      _id: sessionId,
+      interview: interviewId,
+      user: req.userId,
+      status: "completed",
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Completed interview not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        sessionId: session._id,
+        status: session.status,
+        evaluation: session.evaluation,
+        answer:session.answers
+        
+      },
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch interview result",
+    });
+  }
+};
+
+export { submitAnswer, completeInterview,getInterviewResult };

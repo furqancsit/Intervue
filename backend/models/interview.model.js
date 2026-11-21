@@ -43,11 +43,14 @@ const interviewSchema = new Schema(
 
     questionCount: {
       type: Number,
-      min: 1,
-      max: 30,
+      min: [1, "Minimum 1 question is required"],
+      max: [20, "Maximum 20 questions are allowed"],
       default: 10,
+      validate: {
+        validator: Number.isInteger,
+        message: "Question count must be an integer",
+      },
     },
-
     durationMinutes: {
       type: Number,
       min: 5,
@@ -64,11 +67,10 @@ const interviewSchema = new Schema(
     status: {
       type: String,
       enum: ["active", "archived"],
-      default: "active",
+  
     },
-   
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 interviewSchema.index({ user: 1, createdAt: -1 });

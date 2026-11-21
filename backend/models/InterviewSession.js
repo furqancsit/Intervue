@@ -31,10 +31,9 @@ const interviewSessionSchema = new Schema(
     status: {
       type: String,
       enum: ["in_progress", "completed", "abandoned"],
-      default: "in_progress",
       index: true,
     },
-    
+
     mode: {
       type: String,
       enum: ["text", "voice"],
@@ -45,7 +44,7 @@ const interviewSessionSchema = new Schema(
       type: [], //vomvrdstion schema
       default: [],
     },
-    
+
     evaluation: {
       type: evaluationSchema,
       default: null,
@@ -64,7 +63,6 @@ const interviewSessionSchema = new Schema(
   { timestamps: true },
 );
 
+const InterviewSession = model("interviewSession", interviewSessionSchema);
 
- const InterviewSession = model("interviewSession", interviewSessionSchema)
-
- export default InterviewSession;
+export default InterviewSession;

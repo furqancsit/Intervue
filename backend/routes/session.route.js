@@ -3,11 +3,20 @@ import { protect } from "../middlewares/auth.midleware.js";
 import {
   submitAnswer,
   completeInterview,
+  getInterviewResult,
 } from "../controllers/interviewSeesion.interview.js";
+import { geminiLimiter } from "../middlewares/rateLimiter.js";
 
 const router = Router();
 
 router.use(protect);
 router.post("/interviews/:interviewId/sessions/:sessionId/questions/:order/answer", submitAnswer);
 router.post("/:interviewId/sessions/:sessionId/complete", completeInterview);
+
+router.get(
+  "/:interviewId/sessions/:sessionId/result",
+  protect,
+  geminiLimiter,
+  getInterviewResult
+);
 export default router;

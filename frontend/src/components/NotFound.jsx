@@ -26,8 +26,8 @@ export default function NotFound() {
                 <button
                     onClick={() => navigate("/")}
                     className="mt-8 inline-flex items-center gap-2
-                    bg-amber-600 hover:bg-amber-700
-                    text-white font-semibold px-6 py-3 cursor-pointer
+                    bg-amber-300 hover:bg-amber-200
+                    text-black font-semibold px-6 py-3 cursor-pointer
                     rounded-xl shadow-lg transition-all
                     duration-300 hover:scale-105"
                 >

@@ -8,6 +8,7 @@ const Home = () => {
   return (
     <div>
         <Hero/>
+        
         <Features/>
         <Pricing/>
         <CTA />

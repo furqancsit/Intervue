@@ -1,6 +1,6 @@
-
 import React, { useState } from "react";
-
+import interviewApi from "./api/InterviewApi";
+import { useNavigate } from "react-router-dom";
 const InterviewForm = () => {
   const [formData, setFormData] = useState({
     title: "",
@@ -13,6 +13,8 @@ const InterviewForm = () => {
     interviewType: "technical",
   });
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -22,41 +24,43 @@ const InterviewForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Interview Data:", formData);
+
+    try {
+      await interviewApi.create(formData);
+      navigate("/my-interview");
+    } catch (error) {
+      console.error("Failed to create interview:", error);
+    }
   };
 
   const inputStyle =
-    "w-full rounded-lg border border-slate-800 bg-black/50 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-amber-500";
+    "w-full rounded-lg border border-slate-800 bg-black/50 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-amber-200";
 
-  const labelStyle =
-    "mb-2 block text-sm font-medium text-slate-300";
+  const labelStyle = "mb-2 block text-sm font-medium text-slate-300";
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-black px-5 py-16 text-white sm:py-20">
-
+    <section className="relative  min-h-screen overflow-hidden bg-black px-5 py-16 text-white sm:py-20">
       {/* Background Glow */}
       <div className="absolute -top-40 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-amber-500/10 blur-[120px]" />
 
       <div className="relative mx-auto max-w-3xl">
-
         {/* Header */}
         <div className="mb-10 text-center">
-
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-xs font-medium text-amber-400">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-500/10 px-4 py-2 text-xs font-medium text-amber-300">
             <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
             AI Interview Setup
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
             Create Your
-            <span className="text-amber-500"> Interview.</span>
+            <span className="text-amber-200"> Interview.</span>
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-400 sm:text-base">
-            Customize your interview experience. Choose your role,
-            difficulty, and topics to generate a personalized AI interview.
+            Customize your interview experience. Choose your role, difficulty,
+            and topics to generate a personalized AI interview.
           </p>
         </div>
 
@@ -65,17 +69,14 @@ const InterviewForm = () => {
           onSubmit={handleSubmit}
           className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5 shadow-2xl shadow-amber-500/5 sm:p-8"
         >
-
           {/* Section Header */}
           <div className="mb-7 flex items-center gap-3 border-b border-slate-800 pb-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 text-lg text-amber-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10 text-lg text-amber-600">
               ✦
             </div>
 
             <div>
-              <h2 className="text-base font-semibold">
-                Interview Details
-              </h2>
+              <h2 className="text-base font-semibold">Interview Details</h2>
               <p className="mt-1 text-xs text-slate-500">
                 Set up your personalized interview session
               </p>
@@ -83,12 +84,9 @@ const InterviewForm = () => {
           </div>
 
           <div className="space-y-6">
-
             {/* Interview Title */}
             <div>
-              <label className={labelStyle}>
-                Interview Title
-              </label>
+              <label className={labelStyle}>Interview Title</label>
 
               <input
                 type="text"
@@ -103,9 +101,7 @@ const InterviewForm = () => {
 
             {/* Job Role */}
             <div>
-              <label className={labelStyle}>
-                Job Role
-              </label>
+              <label className={labelStyle}>Job Role</label>
 
               <input
                 type="text"
@@ -120,11 +116,8 @@ const InterviewForm = () => {
 
             {/* Experience & Interview Type */}
             <div className="grid gap-5 sm:grid-cols-2">
-
               <div>
-                <label className={labelStyle}>
-                  Experience Level
-                </label>
+                <label className={labelStyle}>Experience Level</label>
 
                 <select
                   name="experienceLevel"
@@ -140,9 +133,7 @@ const InterviewForm = () => {
               </div>
 
               <div>
-                <label className={labelStyle}>
-                  Interview Type
-                </label>
+                <label className={labelStyle}>Interview Type</label>
 
                 <select
                   name="interviewType"
@@ -155,14 +146,11 @@ const InterviewForm = () => {
                   <option value="mixed">Mixed</option>
                 </select>
               </div>
-
             </div>
 
             {/* Topics */}
             <div>
-              <label className={labelStyle}>
-                Interview Topics
-              </label>
+              <label className={labelStyle}>Interview Topics</label>
 
               <textarea
                 name="topics"
@@ -181,9 +169,7 @@ const InterviewForm = () => {
 
             {/* Difficulty */}
             <div>
-              <label className={labelStyle}>
-                Difficulty Level
-              </label>
+              <label className={labelStyle}>Difficulty Level</label>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {["easy", "medium", "hard", "mixed"].map((level) => (
@@ -198,7 +184,7 @@ const InterviewForm = () => {
                     }
                     className={`rounded-lg border px-3 py-3 text-sm font-medium capitalize transition ${
                       formData.difficulty === level
-                        ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                        ? "border-amber-200 bg-amber-500/10 text-amber-600"
                         : "border-slate-800 bg-black/40 text-slate-400 hover:border-slate-600"
                     }`}
                   >
@@ -210,17 +196,14 @@ const InterviewForm = () => {
 
             {/* Questions & Duration */}
             <div className="grid gap-5 sm:grid-cols-2">
-
               <div>
-                <label className={labelStyle}>
-                  Number of Questions
-                </label>
+                <label className={labelStyle}>Number of Questions</label>
 
                 <input
                   type="number"
                   name="questionCount"
                   min="1"
-                  max="30"
+                  max="20"
                   value={formData.questionCount}
                   onChange={handleChange}
                   className={inputStyle}
@@ -232,9 +215,7 @@ const InterviewForm = () => {
               </div>
 
               <div>
-                <label className={labelStyle}>
-                  Duration (Minutes)
-                </label>
+                <label className={labelStyle}>Duration (Minutes)</label>
 
                 <input
                   type="number"
@@ -250,43 +231,37 @@ const InterviewForm = () => {
                   Choose between 5 and 180 minutes.
                 </p>
               </div>
-
             </div>
-
           </div>
 
           {/* Submit Button */}
           <div className="mt-9 border-t border-slate-800 pt-6">
-
             <button
               type="submit"
-              className="group flex w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              className="group flex w-full items-center justify-center gap-2 rounded-lg bg-amber-300 px-6 py-3.5 text-sm font-semibold text-black transition hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer"
             >
               Generate AI Interview
-
               <span className="transition-transform group-hover:translate-x-1">
                 →
               </span>
             </button>
 
             <p className="mt-4 text-center text-xs text-slate-500">
-              ✦ Your personalized AI interview will be generated based on your preferences.
+              ✦ Your personalized AI interview will be generated based on your
+              preferences.
             </p>
-
           </div>
-
         </form>
 
         {/* Bottom Benefits */}
         <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-
           {[
             { title: "Personalized", desc: "Role-based questions" },
             { title: "AI Powered", desc: "Smart evaluation" },
             { title: "Flexible", desc: "Your own pace" },
           ].map((item) => (
             <div key={item.title}>
-              <h3 className="text-xs font-semibold text-amber-400 sm:text-sm">
+              <h3 className="text-xs font-semibold text-amber-600 sm:text-sm">
                 {item.title}
               </h3>
               <p className="mt-1 text-[10px] text-slate-500 sm:text-xs">
@@ -294,9 +269,7 @@ const InterviewForm = () => {
               </p>
             </div>
           ))}
-
         </div>
-
       </div>
     </section>
   );

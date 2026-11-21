@@ -7,7 +7,7 @@ const answerSchema = new mongoose.Schema(
       required: true,
     },
 
-    answer: {
+    answerText: {
       type: String,
       default: "",
     },

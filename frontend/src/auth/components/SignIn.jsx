@@ -3,9 +3,14 @@ import { Link } from "react-router-dom";
 import { GoogleAuthButton } from "../googleAuthButton";
 
 import { useNavigate } from "react-router-dom";
-import { login,loginWithGoogle } from "../api/Auth";
+import { login, loginWithGoogle } from "../api/Auth";
 
 import { useAuth } from "../../context/authProvider";
+import { toast } from "react-hot-toast";
+import {
+  getApiErrorMessage,
+  toastApiPromise,
+} from "../../utils/notifications";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -17,28 +22,37 @@ const SignIn = () => {
   });
 
   const handleGoogleSuccess = async ({ credential }) => {
-    // Connect your Google OAuth authentication her
-
-    const res = await loginWithGoogle(credential);
-
-    console.log("resssssss :" ,res)
-    setUser(res.user)
-    
-    console.log("Google login clicked");
-
-    navigate("/dashboard");
+    try {
+      const response = await toastApiPromise(
+        loginWithGoogle(credential),
+        {
+          loading: "Signing in with Google...",
+          success: "Signed in successfully.",
+          error: "Unable to sign in with Google.",
+        },
+      );
+      setUser(response.user);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Google login failed:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-
-      const response = await login(form.email, form.password);
- 
-      setUser(response.user)
+      const response = await toastApiPromise(
+        login(form.email, form.password),
+        {
+          loading: "Signing in...",
+          success: "Welcome back!",
+          error: "Unable to sign in. Check your email and password.",
+        },
+      );
+      setUser(response.user);
       navigate("/dashboard");
     } catch (error) {
-      console.log("login failed", error);
+      console.error("Login failed:", error);
     }
   };
 
@@ -52,7 +66,7 @@ const SignIn = () => {
       <div className="relative w-full max-w-md">
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 shadow-2xl sm:p-8">
           <div className="mb-7 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300">
               ✦
             </div>
 
@@ -65,6 +79,7 @@ const SignIn = () => {
 
           <GoogleAuthButton
             onSuccess={handleGoogleSuccess}
+            onError={() => toast.error("Google sign-in failed. Please try again.")}
             text="continue_with"
             shape="rectangular"
             theme="outline"
@@ -95,7 +110,7 @@ const SignIn = () => {
                 placeholder="you@example.com"
                 required
                 autoComplete="email"
-                className="w-full rounded-lg border border-slate-800 bg-black px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                className="w-full rounded-lg border border-slate-800 bg-black px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-amber-200 focus:ring-1 focus:ring-amber-200"
               />
             </div>
 
@@ -107,7 +122,7 @@ const SignIn = () => {
 
                 <Link
                   to="/forgot-password"
-                  className="text-xs font-medium text-amber-500 hover:text-amber-400"
+                  className="text-xs font-medium text-amber-300 hover:text-amber-300"
                 >
                   Forgot password?
                 </Link>
@@ -126,7 +141,7 @@ const SignIn = () => {
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-amber-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-amber-700"
+              className="w-full rounded-lg bg-amber-300 px-5 py-3 text-sm font-semibold text-black transition  cursor-pointer hover:bg-amber-200"
             >
               Sign in
             </button>

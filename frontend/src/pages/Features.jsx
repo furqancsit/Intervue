@@ -35,13 +35,13 @@ const Features = () => {
 
         {/* Heading */}
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
             Why Prepwise
           </span>
 
           <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
             Everything you need to
-            <span className="block text-amber-500">
+            <span className="block text-amber-300">
               ace your interviews.
             </span>
           </h2>
@@ -60,9 +60,9 @@ const Features = () => {
             return (
               <div
                 key={feature.title}
-                className="group rounded-xl border border-slate-800 bg-slate-950/60 p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-500/50 hover:bg-slate-900"
+                className="group rounded-xl border border-slate-800 bg-slate-950/60 p-6 transition duration-300 hover:-translate-y-1 hover:border-amber-300/50 hover:bg-slate-900"
               >
-                <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 transition group-hover:bg-amber-500 group-hover:text-black">
+                <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-lg bg-amber-300/10 text-amber-300 transition group-hover:bg-amber-300 group-hover:text-black">
                   <Icon size={22} strokeWidth={1.8} />
                 </div>
 

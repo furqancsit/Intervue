@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { register } from "../api/Auth";
+import { loginWithGoogle, register } from "../api/Auth";
 import { GoogleAuthButton } from "../googleAuthButton";
-
+import { toast } from "react-hot-toast";
+import { useAuth } from "../../context/authProvider";
+import { toastApiPromise } from "../../utils/notifications";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -13,51 +14,57 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
-
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError("");
   };
 
-  const handleGoogleSignup = async ({credential}) => {
-    // Connect Google OAuth here
-
-    const res = await googleLogin(credential);
-
-    console.log("Google signup clicked");
-    navigate("/dashboard");
-
+  const handleGoogleSignup = async ({ credential }) => {
+    try {
+      const response = await toastApiPromise(
+        loginWithGoogle(credential),
+        {
+          loading: "Creating your account with Google...",
+          success: "Your account is ready.",
+          error: "Unable to sign up with Google.",
+        },
+      );
+      setUser(response.user);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Google signup failed:", error);
+    }
   };
 
-
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      toast.error("Password must be at least 8 characters.");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      toast.error("Passwords do not match.");
       return;
     }
 
-    const response = await register(formData);
-
-    console.log("Registration successful:", response.data);
-
-    navigate("/dashboard");
-
-    // Connect your registration API here.
-    // Send name, email and password to your backend.
+    try {
+      const response = await toastApiPromise(register(formData), {
+        loading: "Creating your account...",
+        success: "Your account has been created.",
+        error: "Unable to create your account. Please try again.",
+      });
+      setUser(response.user);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
   };
 
   return (
@@ -71,7 +78,7 @@ const Signup = () => {
           to="/"
           className="mb-8 block text-center text-3xl font-medium lowercase"
         >
-          <span className="font-bold text-amber-500">Pre</span>pwise
+          <span className="font-bold tracking-tight text-amber-200 ">Pre</span>pwise
         </Link>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-6 shadow-2xl sm:p-8">
@@ -90,13 +97,9 @@ const Signup = () => {
 
           {/* Google Signup */}
           <GoogleAuthButton
-            type="button"
-            onClick={handleGoogleSignup}
-            className="flex w-full items-center justify-center gap-3 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-100"
-          >
-          
-     
-          </GoogleAuthButton>
+            onSuccess={handleGoogleSignup}
+            onError={() => toast.error("Google sign-up failed. Please try again.")}
+          />
 
           {/* Divider */}
           <div className="my-7 flex items-center gap-4">
@@ -173,15 +176,9 @@ const Signup = () => {
               />
             </div>
 
-            {error && (
-              <p role="alert" className="text-sm text-red-400">
-                {error}
-              </p>
-            )}
-
             <button
               type="submit"
-              className="w-full rounded-lg bg-amber-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-amber-700"
+              className="w-full rounded-lg bg-amber-300 px-5 py-3 text-sm font-semibold text-black cursor-pointer transition hover:bg-amber-200"
             >
               Create Free Account
             </button>
@@ -190,7 +187,7 @@ const Signup = () => {
           {/* Free Plan Info */}
           <div className="mt-6 rounded-lg border border-slate-800 bg-black p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-amber-400">
+              <span className="text-sm font-semibold text-amber-200">
                 Free Plan
               </span>
               <span className="text-sm font-semibold text-white">₹0</span>
@@ -205,7 +202,7 @@ const Signup = () => {
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-semibold text-amber-500 hover:text-amber-400"
+              className="font-semibold text-amber-200 hover:text-amber-400"
             >
               Sign in
             </Link>

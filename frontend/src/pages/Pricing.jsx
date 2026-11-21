@@ -46,7 +46,7 @@ const Pricing = () => {
 
         {/* Heading */}
         <div className="mb-14 text-center">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">
             Simple Pricing
           </span>
 
@@ -67,13 +67,13 @@ const Pricing = () => {
               key={plan.name}
               className={`relative flex flex-col rounded-2xl border p-7 transition duration-300 hover:-translate-y-1 ${
                 plan.popular
-                  ? "border-amber-500 bg-slate-950 shadow-xl shadow-amber-500/5"
+                  ? "border-amber-300 bg-slate-950 shadow-xl shadow-amber-300/5"
                   : "border-slate-800 bg-slate-950/50"
               }`}
             >
               {/* Popular Badge */}
               {plan.popular && (
-                <div className="absolute -top-3 right-6 flex items-center gap-1 rounded-full bg-amber-600 px-3 py-1 text-xs font-semibold text-white">
+                <div className="absolute -top-3 right-6 flex items-center gap-1 rounded-full bg-amber-300 px-3 py-1 text-xs font-semibold text-black">
                   <Sparkles size={13} />
                   Most Popular
                 </div>
@@ -89,7 +89,7 @@ const Pricing = () => {
               <div className="mt-7 flex items-baseline gap-1">
                 <span
                   className={`text-4xl font-bold ${
-                    plan.popular ? "text-amber-500" : "text-white"
+                    plan.popular ? "text-amber-300" : "text-white"
                   }`}
                 >
                   {plan.price}
@@ -101,7 +101,7 @@ const Pricing = () => {
 
               {/* Interview Limit */}
               <div className="mt-6 rounded-lg border border-slate-800 bg-black p-3">
-                <p className="text-sm font-semibold text-amber-400">
+                <p className="text-sm font-semibold text-amber-300">
                   {plan.interviews}
                 </p>
               </div>
@@ -116,7 +116,7 @@ const Pricing = () => {
                     {feature.included ? (
                       <Check
                         size={17}
-                        className="shrink-0 text-amber-500"
+                        className="shrink-0 text-amber-300"
                       />
                     ) : (
                       <X
@@ -143,8 +143,8 @@ const Pricing = () => {
                 to={plan.link}
                 className={`block rounded-lg px-5 py-3 text-center text-sm font-semibold transition ${
                   plan.popular
-                    ? "bg-amber-600 text-white hover:bg-amber-700"
-                    : "border border-slate-700 text-white hover:border-amber-500 hover:text-amber-400"
+                    ? "bg-amber-300 text-black hover:bg-amber-200"
+                    : "border border-slate-700 text-white  "
                 }`}
               >
                 {plan.button}
