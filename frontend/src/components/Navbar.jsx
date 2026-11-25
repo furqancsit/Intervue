@@ -17,9 +17,9 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "Product", path: "/features" },
-    { name: "Features", path: "/feture" },
     { name: "Pricing", path: "/pricing" },
-    { name: "my interview", path: "/my-interview" },
+    // { name: "Create Interview", path: "/create-interview" },
+    { name: "My Interviews", path: "/my-interview" },
   ];
 
   const linkStyle = ({ isActive }) =>
@@ -43,7 +43,7 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b  bg-black ">
       <nav className="mx-auto max-w-6xl px-5 lg:px-8">
-        <div className="flex h-18 min-h-[72px] items-center justify-between">
+        <div className="flex h-16 min-h-[68px] items-center justify-between">
           {/* Logo */}
           <Link
             to="/"

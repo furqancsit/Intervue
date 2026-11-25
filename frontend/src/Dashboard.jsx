@@ -41,7 +41,7 @@ export default function Dashboard() {
 
       setInterviews(Array.isArray(interviewData) ? interviewData : []);
     } catch (err) {
-      setError(err.response?.data?.message || "Unable to load your dashboard.");
+      setError(err.response?.data?.message || "Unable to load your interview.");
     } finally {
       setLoading(false);
     }

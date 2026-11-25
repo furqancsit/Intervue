@@ -32,7 +32,12 @@ const userSchema = new mongoose.Schema(
       type : String,
       enum:["free", "paid"],
       default : "free"
-    }
+    },
+       interviewUsage: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
 
       },
   {

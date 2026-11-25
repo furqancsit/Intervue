@@ -16,6 +16,8 @@ const InterviewResult = () => {
           signal: controller.signal,
         });
 
+        console.log("Interview result fetched:", response.data);
+
         setResult(response.data);
       } catch (err) {
         if (err.name !== "CanceledError") {

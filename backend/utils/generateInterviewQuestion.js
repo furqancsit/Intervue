@@ -1,6 +1,6 @@
 import { generateJSON } from "../services/aiService.js";
 
-export async function generateInterviewQuestions(interview) {
+export async function generateInterviewQuestions(interview,resumeAnalysis = null) {
   const {
     role,
     difficulty,
@@ -25,11 +25,7 @@ export async function generateInterviewQuestions(interview) {
     throw new Error("questionCount must be between 1 and 30");
   }
 
-  const allowedTypes = [
-    "technical",
-    "behavioral",
-    "situational",
-  ];
+  const allowedTypes = ["technical", "behavioral", "situational"];
 
   const types = Array.isArray(type) ? type : [type];
 
@@ -48,8 +44,7 @@ export async function generateInterviewQuestions(interview) {
 
   const safeTopics = Array.isArray(topics)
     ? topics.filter(
-        (topic) =>
-          typeof topic === "string" && topic.trim().length > 0
+        (topic) => typeof topic === "string" && topic.trim().length > 0,
       )
     : [];
 
@@ -73,26 +68,47 @@ Rules:
 11. Each question must contain:
     text, type, topic, difficulty, order.
 12. Use only easy, medium, or hard for each question's difficulty.
+13. If resume information is provided, generate
+    questions based on the candidate's actual skills,
+    projects, and work experience.
+
+14. Ask questions about technologies mentioned
+    in the resume.
+
+15. Include project-specific questions to verify
+    the candidate's practical experience.
+
+16. Do not assume skills or experience that are
+    not present in the resume.
 `;
 
-  const input = {
-    role: role.trim(),
-    difficulty,
-    topics: safeTopics.length ? safeTopics : [role],
-    questionTypes: types,
-    questionCount,
-    requiredOutputFormat: {
-      questions: [
-        {
-          text: "Interview question",
-          type: "technical",
-          topic: "JavaScript",
-          difficulty: "medium",
-          order: 1,
-        },
-      ],
-    },
-  };
+const input = {
+  role: role.trim(),
+  difficulty,
+  topics: safeTopics.length ? safeTopics : [role],
+  questionTypes: types,
+  questionCount,
+
+  resumeContext: resumeAnalysis
+    ? {
+        skills: resumeAnalysis.skills,
+        experience: resumeAnalysis.experience,
+        projects: resumeAnalysis.projects
+      }
+    : null,
+
+  requiredOutputFormat: {
+    questions: [
+      {
+        text: "Interview question",
+        type: "technical",
+        topic: "JavaScript",
+        difficulty: "medium",
+        order: 1
+      }
+    ]
+  }
+};
 
   const parsed = await generateJSON({
     instructions,
@@ -101,10 +117,7 @@ Rules:
 
   const questions = parsed.questions;
 
-  if (
-    !Array.isArray(questions) ||
-    questions.length !== questionCount
-  ) {
+  if (!Array.isArray(questions) || questions.length !== questionCount) {
     throw new Error("AI returned an incorrect number of questions");
   }
 
@@ -116,7 +129,9 @@ Rules:
       typeof question.topic !== "string" ||
       !["easy", "medium", "hard"].includes(question.difficulty)
     ) {
-      throw new Error(`AI returned an invalid question at position ${index + 1}`);
+      throw new Error(
+        `AI returned an invalid question at position ${index + 1}`,
+      );
     }
 
     return {

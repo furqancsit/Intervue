@@ -1,10 +1,3 @@
-const generateQuestions = (req, res) => {
-  // interview id , user id , session id , genrated questions by using , save quesions
-
-};
-
-
-
 
 
 const getQuestionByOrder = async (req, res) => {

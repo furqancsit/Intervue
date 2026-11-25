@@ -23,11 +23,19 @@ const interviewSchema = new Schema(
       required: true,
       trim: true,
     },
+    resume: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Resume",
+      default: null,
+    },
 
     experienceLevel: {
       type: String,
       enum: ["fresher", "junior", "mid", "senior"],
+      lowercase: true,
       required: true,
+
+      
     },
 
     topics: {
@@ -39,6 +47,7 @@ const interviewSchema = new Schema(
       type: String,
       enum: ["easy", "medium", "hard", "mixed"],
       default: "mixed",
+      lowercase: true,
     },
 
     questionCount: {
@@ -62,12 +71,13 @@ const interviewSchema = new Schema(
       type: String,
       enum: ["technical", "behavioral", "mixed"],
       default: "technical",
+      lowercase:true
     },
 
     status: {
       type: String,
       enum: ["active", "archived"],
-  
+       default: "active",
     },
   },
   { timestamps: true },

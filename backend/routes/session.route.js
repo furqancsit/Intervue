@@ -17,6 +17,6 @@ router.get(
   "/:interviewId/sessions/:sessionId/result",
   protect,
   geminiLimiter,
-  getInterviewResult
-);
+  getInterviewResult   
+);  
 export default router;

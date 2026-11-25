@@ -21,10 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 import authRoutes from "./routes/auth.routes.js";
 import interviewRoutes from "./routes/interview.route.js";
 import sessionRoutes from "./routes/session.route.js";
-
+import resumeRouter from "./routes/resume.routes.js";
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/interview", interviewRoutes);
 app.use("/api/v1/session", sessionRoutes);
+app.use("/api/v1/resume", resumeRouter)
 
 await connectDB();
 app.get("/", (req, res) => {

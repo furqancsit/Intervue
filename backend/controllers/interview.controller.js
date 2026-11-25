@@ -2,11 +2,16 @@ import mongoose from "mongoose";
 import Interview from "../models/interview.model.js";
 
 import InterviewSession from "../models/InterviewSession.js";
-import { getInterviewUsage } from "../utils/getInterviewUsage.js";
 import User from "../models/user.model.js";
 import { generateInterviewQuestions } from "../utils/generateInterviewQuestion.js";
-
+import Resume from "../models/resume.model.js";
+const PLAN_LIMITS = {
+  free: 1,
+  paid: 5,
+};
 const createInterview = async (req, res) => {
+  let session;
+
   try {
     const {
       title,
@@ -17,8 +22,28 @@ const createInterview = async (req, res) => {
       questionCount,
       durationMinutes,
       interviewType,
+      resumeId,
     } = req.body;
 
+    // 1. Validate resume
+    let resume = null;
+
+    if (resumeId) {
+      resume = await Resume.findOne({
+        _id: resumeId,
+        user: req.userId,
+        analysisStatus: "completed",
+      });
+
+      if (!resume) {
+        return res.status(404).json({
+          success: false,
+          message: "Analyzed resume not found",
+        });
+      }
+    }
+
+    // 2. Validate required fields
     if (!title?.trim() || !role?.trim() || !experienceLevel) {
       return res.status(400).json({
         success: false,
@@ -36,45 +61,104 @@ const createInterview = async (req, res) => {
         message: "Question count must be between 1 and 20",
       });
     }
-    const user = await User.findById(req.userId);
 
-    if (!user) {
-      return res.status(404).json({ message: "user not found" });
-    }
+    // 3. Start MongoDB transaction
+    session = await mongoose.startSession();
 
-    const usage = await getInterviewUsage(user);
+    let interview;
+    let usage;
 
-    if (!usage.canCreate) {
-      return res.status(403).json({
-        success: false,
-        code: "INTERVIEW_LIMIT_REACHED",
-        message: `Your ${usage.plan} plan allows ${usage.limit} interview(s).`,
-        data: {
-          plan: usage.plan,
-          limit: usage.limit,
-          used: usage.used,
-          remaining: usage.remaining,
+    await session.withTransaction(async () => {
+      // 4. Get user
+      const user = await User.findById(req.userId)
+        .select("plan")
+        .session(session);
+
+      if (!user) {
+        throw new Error("USER_NOT_FOUND");
+      }
+
+      // 5. Get plan limit
+      const plan = user.plan ?? "free";
+      const limit = PLAN_LIMITS[plan];
+
+      if (limit === undefined) {
+        throw new Error("INVALID_USER_PLAN");
+      }
+
+      // 6. Atomically reserve one interview slot
+      const updatedUser = await User.findOneAndUpdate(
+        {
+          _id: req.userId,
+          plan,
+          interviewUsage: { $lt: limit },
         },
-      });
-    }
+        {
+          $inc: { interviewUsage: 1 },
+        },
+        {
+          new: true,
+          session,
+        },
+      );
 
-    const interview = await Interview.create({
-      user: req.userId,
-      title: title.trim(),
-      role: role.trim(),
-      experienceLevel,
-      topics,
-      difficulty,
-      questionCount,
-      durationMinutes,
-      interviewType,
+      // No available slot
+      if (!updatedUser) {
+        throw new Error("INTERVIEW_LIMIT_REACHED");
+      }
+
+      usage = {
+        plan,
+        limit,
+        used: updatedUser.interviewUsage,
+        remaining: limit - updatedUser.interviewUsage,
+      };
+
+      // 7. Create interview in the same transaction
+      const [createdInterview] = await Interview.create(
+        [
+          {
+            user: req.userId,
+            title: title.trim(),
+            role: role.trim(),
+            experienceLevel,
+            topics,
+            difficulty,
+            questionCount,
+            durationMinutes,
+            interviewType,
+            resume: resume?._id || null,
+          },
+        ],
+        { session },
+      );
+
+      interview = createdInterview;
     });
+
+    // 8. Transaction successfully committed
     return res.status(201).json({
       success: true,
       message: "Interview created successfully",
       data: interview,
+      usage,
     });
   } catch (error) {
+    if (error.message === "INTERVIEW_LIMIT_REACHED") {
+      return res.status(403).json({
+        success: false,
+        code: "INTERVIEW_LIMIT_REACHED",
+        message: "You have reached your interview limit.",
+      });
+    }
+
+    if (error.message === "USER_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
     if (error.name === "ValidationError") {
       return res.status(400).json({
         success: false,
@@ -88,6 +172,10 @@ const createInterview = async (req, res) => {
       success: false,
       message: "Failed to create interview",
     });
+  } finally {
+    if (session) {
+      await session.endSession();
+    }
   }
 };
 
@@ -142,17 +230,44 @@ const startInterview = async (req, res) => {
           questions: existingSession.questions,
           answers: existingSession.answers,
           status: existingSession.status,
-        },  
+        },
       });
     }
+    let resumeAnalysis = null;
 
-    const questions = await generateInterviewQuestions({
-      role: interview.role,
-      difficulty: interview.difficulty,
-      topics: interview.topics,
-      questionCount: interview.questionCount,
-      type: interview.interviewType,
-    });
+    if (interview.resume) {
+      const resume = await Resume.findOne({
+        _id: interview.resume,
+        user: req.userId,
+        analysisStatus: "completed",
+      });
+
+      if (!resume) {
+        return res.status(404).json({
+          success: false,
+          message: "Resume analysis not found",
+        });
+      }
+
+      resumeAnalysis = {
+        skills: resume.skills,
+        experience: resume.experience,
+        projects: resume.projects,
+        suggestedRole: resume.suggestedRole,
+        experienceLevel: resume.experienceLevel,
+      };
+    }
+
+    const questions = await generateInterviewQuestions(
+      {
+        role: interview.role,
+        difficulty: interview.difficulty,
+        topics: interview.topics,
+        questionCount: interview.questionCount,
+        type: interview.interviewType,
+      },
+      resumeAnalysis,
+    );
 
     const session = await InterviewSession.create({
       user: req.userId,
